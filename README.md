@@ -8,4 +8,4 @@
   
 ### To add the public access token
   - Locate string.xml within your res directory
-  - <string name="mapbox_access_token">pk.ey.....</string>
+  - ```<string name="mapbox_access_token">pk.ey.....</string>```
