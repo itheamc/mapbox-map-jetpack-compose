@@ -111,6 +111,33 @@ class MapboxMapController(private val mapView: MapView) {
     }
 
     /**
+     * Method to switch the map style
+     */
+    fun toggleSatelliteMode() {
+        mapboxMap.getStyle()?.let {
+            mapboxMap.loadStyleUri(
+                if (it.styleURI == Style.SATELLITE) Style.LIGHT else Style.SATELLITE,
+                onStyleLoaded = { sty ->
+                    Log.d(TAG, "onStyleLoadedListener: Loaded")
+                    _interactiveLayerSources.clear()
+                    _interactiveLayers.clear()
+                    if (onStyleLoadedCallbacks.isNotEmpty()) {
+                        onStyleLoadedCallbacks.forEach {
+                            it(sty)
+                        }
+                    }
+                },
+                onMapLoadErrorListener = object : OnMapLoadErrorListener {
+                    override fun onMapLoadError(eventData: MapLoadingErrorEventData) {
+                        Log.d(TAG, "onMapLoadError: ${eventData.message}")
+                    }
+                }
+            )
+        }
+    }
+
+
+    /**
      * Method to add geo json sources
      * Remember: If your want to add line layer or fill layer along with the circle layer
      * then you clustering feature will not working. Turning [cluster = true] will throw an error
