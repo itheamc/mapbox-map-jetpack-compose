@@ -4,7 +4,7 @@
 
 ### To add private access token:
   - Go to gradle.properties
-  - MAPBOX_SECRET_KEY=sk.er..... (This is your secret access token)
+  - ```MAPBOX_SECRET_KEY=sk.er.....``` (This is your secret access token)
   
 ### To add the public access token
   - Locate string.xml within your res directory
