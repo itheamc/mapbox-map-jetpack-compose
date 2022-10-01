@@ -61,5 +61,5 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
-    implementation 'com.mapbox.maps:android:10.8.0'
+    implementation 'com.mapbox.maps:android:10.8.1'
 }
