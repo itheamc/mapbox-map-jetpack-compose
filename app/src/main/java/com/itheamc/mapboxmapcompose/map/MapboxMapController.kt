@@ -1,4 +1,4 @@
-package com.itheamc.mapboxmapcompose.map.controller
+package com.itheamc.mapboxmapcompose.map
 
 
 import android.graphics.Bitmap
@@ -17,6 +17,7 @@ import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.VectorSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.vectorSource
+import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.delegates.listeners.OnMapLoadErrorListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
@@ -59,7 +60,7 @@ class MapboxMapController(private val mapView: MapView) {
      * Getter for style
      */
     private val style: Style?
-        get() = mapboxMap.getStyle()
+        get() = if (mapboxMap.isValid()) mapboxMap.getStyle() else null
 
     /**
      * Getter for styleLayers
@@ -85,6 +86,8 @@ class MapboxMapController(private val mapView: MapView) {
      * Method to load the style uri
      */
     private fun loadStyleUri() {
+        if (!mapboxMap.isValid()) return
+
         Log.d(TAG, "loadStyleUri: Controller")
         mapboxMap.loadStyleUri(
             Style.LIGHT,
@@ -114,6 +117,8 @@ class MapboxMapController(private val mapView: MapView) {
      * Method to switch the map style
      */
     fun toggleSatelliteMode() {
+        if (!mapboxMap.isValid()) return
+
         mapboxMap.getStyle()?.let {
             mapboxMap.loadStyleUri(
                 if (it.styleURI == Style.SATELLITE) Style.LIGHT else Style.SATELLITE,
@@ -134,6 +139,24 @@ class MapboxMapController(private val mapView: MapView) {
                 }
             )
         }
+    }
+
+    /**
+     * Method to animate camera
+     */
+    fun animateCameraPosition(cameraPosition: CameraPosition) {
+        if (!mapboxMap.isValid()) return
+
+        mapboxMap.flyTo(
+            cameraOptions = CameraOptions.Builder()
+                .center(cameraPosition.center)
+                .zoom(cameraPosition.zoom)
+                .bearing(cameraPosition.bearing)
+                .pitch(cameraPosition.pitch)
+                .anchor(cameraPosition.anchor)
+                .build(),
+            animationOptions = cameraPosition.animationOptions
+        )
     }
 
 
@@ -238,7 +261,7 @@ class MapboxMapController(private val mapView: MapView) {
     /**
      * Method to add line layer
      */
-    fun addLineLayer(layerId: String, sourceId: String, block: LineLayerDsl.() -> Unit) {
+    private fun addLineLayer(layerId: String, sourceId: String, block: LineLayerDsl.() -> Unit) {
         style?.let {
             val formattedLayerId = suffixedLayerId(layerId = layerId, layerType = LayerType.LINE)
 
@@ -255,7 +278,11 @@ class MapboxMapController(private val mapView: MapView) {
     /**
      * Method to add circle layer
      */
-    fun addCircleLayer(layerId: String, sourceId: String, block: CircleLayerDsl.() -> Unit) {
+    private fun addCircleLayer(
+        layerId: String,
+        sourceId: String,
+        block: CircleLayerDsl.() -> Unit
+    ) {
         style?.let {
             val formattedLayerId = suffixedLayerId(layerId = layerId, layerType = LayerType.CIRCLE)
 
@@ -289,7 +316,11 @@ class MapboxMapController(private val mapView: MapView) {
     /**
      * Method to add symbol layer
      */
-    fun addSymbolLayer(layerId: String, sourceId: String, block: SymbolLayerDsl.() -> Unit) {
+    private fun addSymbolLayer(
+        layerId: String,
+        sourceId: String,
+        block: SymbolLayerDsl.() -> Unit
+    ) {
         style?.let {
             val formattedLayerId = suffixedLayerId(layerId = layerId, layerType = LayerType.SYMBOL)
 
@@ -313,6 +344,8 @@ class MapboxMapController(private val mapView: MapView) {
         onFeatureClickListener: (feature: Feature) -> Unit = {},
         onFeatureLongClickListener: (feature: Feature) -> Unit = {},
     ) {
+        if (!mapboxMap.isValid()) return
+
         mapboxMap.addOnMapClickListener {
             mapboxMap.queryRenderedFeatures(
                 geometry = RenderedQueryGeometry(mapboxMap.pixelForCoordinate(it)),
